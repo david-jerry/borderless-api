@@ -92,7 +92,7 @@ Now you have your own mail server running locally, ready to receive whatever you
 To facilitate local deployment, this repository includes a run_server.sh script located in the root folder. This script automates all the necessary commands for running the server on your machine. Simply execute the following command:
 
 ```bash
-./run_server,sh
+./run_server.sh
 ```
 
 ## Deployment
