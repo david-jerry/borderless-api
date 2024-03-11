@@ -119,10 +119,10 @@ INSTALLED_APPS += ["anymail"]  # noqa: F405
 # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
 # https://anymail.readthedocs.io/en/stable/esps
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-ANYMAIL = {
-    "POSTMARK_SERVER_TOKEN": env("POSTMARK_SERVER_TOKEN"),
-    "POSTMARK_API_URL": env("POSTMARK_API_URL", default="https://api.postmarkapp.com/"),
-}
+# ANYMAIL = {
+#     "POSTMARK_SERVER_TOKEN": env("POSTMARK_SERVER_TOKEN"),
+#     "POSTMARK_API_URL": env("POSTMARK_API_URL", default="https://api.postmarkapp.com/"),
+# }
 
 
 # LOGGING
