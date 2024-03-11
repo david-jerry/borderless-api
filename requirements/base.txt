@@ -40,7 +40,28 @@ google-api-python-client==1.4.1  # https://pypi.org/project/django-admin-honeypo
 
 # Custom Utilities
 # ------------------------------------------------------------------------------
+# extract tld or subdomains from a link/url
+tldextract==5.1.1   # https://pypi.org/project/tldextract/
 # log informations
 loguru==0.7.2
+# word ranking and pleagarism
+thefuzz[speedup]==0.20.0
+# Reset Migrations
+django-reset-migrations==0.4.0  # https://pypi.org/project/django-reset-migrations/
+# Protected fields
+django-fernet-encrypted-fields==0.1.3  # https://pypi.org/project/django-fernet-encrypted-fields/
 # minify html
 django-htmlmin==0.11.0
+
+# Geolocation check
+opencage==2.4.0  # https://opencagedata.com/
+geopy==2.4.1  # https://geopy.readthedocs.io/en/stable/#installation
+
+# Validate tax and tin and ssn
+python-stdnum==1.19
+
+# PDF Exporter
+reportlab==4.1.0
+
+# Rest API Search Filtering
+django-filter==23.5
