@@ -89,7 +89,7 @@ In development, it is often nice to be able to see emails that are being sent fr
 Now you have your own mail server running locally, ready to receive whatever you send it.
 
 ## Local Server
-This file has a <run_server.sh> file to automate all commands to run this locally on your machine.
+To facilitate local deployment, this repository includes a run_server.sh script located in the root folder. This script automates all the necessary commands for running the server on your machine. Simply execute the following command:
 
 ```bash
 ./run_server,sh
