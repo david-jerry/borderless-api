@@ -176,3 +176,6 @@ SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
 ]
 # Your stuff...
 # ------------------------------------------------------------------------------
+CORS_ORIGIN_WHITELIST = env.list(
+    "CORS_ORIGIN_WHITELIST", default=["https://waitlist.borderlesss.travel", "http://0.0.0.0:3000"]
+)

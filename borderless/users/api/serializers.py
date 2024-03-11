@@ -73,7 +73,7 @@ class RegisterSerializer(serializers.Serializer):
         return get_adapter().clean_password(password)
 
     def validate_name(self, name):
-        if len(name) < 0:
+        if len(name) < 1:
             raise serializers.ValidationError(_("This is a required field"))
 
         if "@" in name:
@@ -86,6 +86,7 @@ class RegisterSerializer(serializers.Serializer):
         return country
 
     def validate(self, data):
+        LOGGER.info(f"{data['password1']} {data['password2']}")
         if data["password1"] != data["password2"]:
             raise serializers.ValidationError(_("The two password fields didn't match."))
         return data
@@ -413,6 +414,7 @@ class UserSerializer(serializers.ModelSerializer[UserType]):
     class Meta:
         model = User
         fields = ["id", "name", "email", "country", "phone", "waitlisted", "is_staff", "date_joined", "last_login"]
+        read_only_fields = ["waitlisted", "is_staff", "date_joined", "last_login"]
 
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "pk"},

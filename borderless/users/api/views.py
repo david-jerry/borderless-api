@@ -1,5 +1,7 @@
-from django.shortcuts import get_object_or_404
-from django.contrib.contenttypes.models import ContentType
+import csv
+
+from django.http import HttpResponse
+from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth import login as django_login
 from django.contrib.auth import logout as django_logout
@@ -999,10 +1001,60 @@ class ResendEmailVerificationViewset(CreateModelMixin, GenericViewSet):
 
         return Response({"detail": _("ok")}, status=status.HTTP_200_OK)
 
+class CheckUserViewSet(ListModelMixin, GenericViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+
+    def get_queryset(self, *args, **kwargs):
+        return self.queryset
+
+    @action(detail=False, methods=["GET"], url_path="check-user-exists")
+    def check_user_exists(self, request):
+        """
+        Check if a user exists by email in the cached users.
+        """
+        email = request.query_params.get("email")
+
+        if not email:
+            return Response({"detail": "Email is a required field."}, status=status.HTTP_200_OK)
+
+        # Retrieve users from the cache
+        cached_users = cache.get('users', [])
+
+        # Check if any user with the specified email exists in the cached users
+        for user in cached_users:
+            if user.email == email and user.is_staff:
+                return Response({"detail": f"A user already exists with this credential: {email}"}, status=status.HTTP_200_OK)
+            elif user.email == email and not user.is_staff:
+                return Response({"detail": f"You are not a staff to access login"}, status=status.HTTP_200_OK)
+        return Response({"detail": f"Ok."}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"], url_path="check-phone-exists")
+    def check_phone_number_exists(self, request):
+        """
+        Check if a user exists by email in the cached users.
+        """
+        phone = request.query_params.get("phone")
+
+        if not phone:
+            return Response({"detail": "Phone Number is a required field."}, status=status.HTTP_200_OK)
+
+        # Retrieve users from the cache
+        cached_users = cache.get('users', [])
+
+        # Check if any user with the specified email exists in the cached users
+        for user in cached_users:
+            if user.phone == phone and user.is_staff:
+                return Response({"detail": f"A user already exists with this credential: {phone}"}, status=status.HTTP_200_OK)
+            elif user.phone == phone and not user.is_staff:
+                return Response({"detail": f"You are not a staff to access login"}, status=status.HTTP_200_OK)
+        return Response({"detail": f"Ok."}, status=status.HTTP_200_OK)
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
     lookup_field = "pk"
 
     def get_queryset(self, *args, **kwargs):
@@ -1014,12 +1066,67 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
         serializer = UserSerializer(request.user, context={"request": request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    @action(detail=False)
+    @action(detail=False, methods=["GET", "POST"])
     def waiters(self, request):
+        from django.db.models import Q
+
         if not request.user.is_staff:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = UserSerializer(request.user, context={"request": request})
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+        if request.method == "GET":
+            query_param = self.request.query_params.get("q", None)
+
+            queryset = User.objects.filter(waitlisted=True)
+            if query_param is not None:
+                queryset = User.objects.filter(waitlisted=True).filter(
+                    Q(name__icontains=query_param) | Q(email__icontains=query_param)
+                )
+            serializer = UserSerializer(queryset, many=True, context={"request": request})
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+        serializer = UserSerializer(data=request.data, context={"request": request})
+
+        if serializer.is_valid():
+            # Assuming the user is identified by the 'user_id' in the request data
+            user = User.objects.create(waitlisted=True, **serializer.data)
+            password = User.objects.make_random_password()
+            user.set_password(password)
+            user.save(update_fields=['password'])
+
+            # Assuming you have a related model for responses, adjust as needed
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+
+    @action(detail=False, methods=["GET"], url_path="export-csv")
+    def export_waiters_csv(self, request):
+        """
+        Export all waiters records as a CSV file.
+        Example usage: /api/users/export-csv/
+        """
+        if not request.user.is_staff:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        queryset = User.objects.filter(waitlisted=True)  # Assuming waiters are staff members
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
+
+        # Create a CSV writer and write the header
+        csv_writer = csv.writer(response)
+        csv_writer.writerow(
+            ["ID", "NAME", "MOBILE NUMBER", "EMAIL ADDRESS", "COUNTRY OF RESIDENCE"]
+        )  # Add other fields as needed
+
+        # Write user data to the CSV file
+        for user in queryset:
+            csv_writer.writerow(
+                [user.id, user.name, user.phone, user.email, user.country]
+            )  # Add other field values as needed
+
+        return response
+
+
 
 def email_confirm_redirect(request, key):
     return HttpResponseRedirect(f"{settings.EMAIL_CONFIRM_REDIRECT_BASE_URL}{key}/")

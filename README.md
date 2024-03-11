@@ -1,6 +1,6 @@
 # borderless
 
-flight 
+This is a one-stop shop for all your travel needs, from booking flights and hotels to finding the perfect activities and experiences. With Borderless, you can explore the world seamlessly and stress-free
 
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 [![Black code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
@@ -40,10 +40,6 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 #### Running tests with pytest
 
     $ pytest
-
-### Live reloading and Sass CSS compilation
-
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
 
 ### Celery
 
@@ -91,6 +87,13 @@ In development, it is often nice to be able to see emails that are being sent fr
 5.  Check out <http://127.0.0.1:8025/> to see how it goes.
 
 Now you have your own mail server running locally, ready to receive whatever you send it.
+
+## Local Server
+This file has a <run_server.sh> file to automate all commands to run this locally on your machine.
+
+```bash
+./run_server,sh
+```
 
 ## Deployment
 
