@@ -41,6 +41,7 @@ from rest_framework_simplejwt.views import api_settings
 from rest_framework_simplejwt.authentication import AUTH_HEADER_TYPES
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+from borderless.borderless.utils.logger import LOGGER
 from borderless.utils.exceptions import ObjectNotFoundException
 from borderless.utils.pagination import CustomPagination
 from borderless.utils.serializers import CustomErrorSerializer
@@ -1130,6 +1131,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
         csv_data = csv_buffer.getvalue().encode("utf-8")
         response = HttpResponse(csv_data, content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
+        LOGGER.info(response)
 
         return response
 
