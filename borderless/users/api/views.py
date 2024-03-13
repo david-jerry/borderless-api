@@ -41,7 +41,7 @@ from rest_framework_simplejwt.views import api_settings
 from rest_framework_simplejwt.authentication import AUTH_HEADER_TYPES
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-from borderless.borderless.utils.logger import LOGGER
+from borderless.utils.logger import LOGGER
 from borderless.utils.exceptions import ObjectNotFoundException
 from borderless.utils.pagination import CustomPagination
 from borderless.utils.serializers import CustomErrorSerializer
