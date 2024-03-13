@@ -1052,6 +1052,42 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
                 return Response({"detail": f"You are not a staff to access login"}, status=status.HTTP_200_OK)
         return Response({"detail": f"Ok."}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=["GET"], url_path="export-csv")
+    def export_waiters_csv(self, request):
+        from io import StringIO
+        """
+        Export all waiters records as a CSV file.
+        Example usage: /api/users/export-csv/
+        """
+        if not request.user.is_staff:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        # Create a StringIO object to hold the CSV data
+        csv_buffer = StringIO()
+
+        queryset = User.objects.filter(waitlisted=True)  # Assuming waiters are staff members
+
+
+        # Create a CSV writer and write the header
+        csv_writer = csv.writer(csv_buffer)
+        csv_writer.writerow(
+            ["ID", "NAME", "MOBILE NUMBER", "EMAIL ADDRESS", "COUNTRY OF RESIDENCE"]
+        )  # Add other fields as needed
+
+        # Write user data to the CSV file
+        for user in queryset:
+            csv_writer.writerow(
+                [user.id, user.name, user.phone, user.email, user.country]
+            )  # Add other field values as needed
+
+        # Get the CSV data from the buffer
+        csv_data = csv_buffer.getvalue().encode("utf-8")
+        response = HttpResponse(csv_data, content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
+        LOGGER.info(response)
+
+        return response
+
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -1099,41 +1135,6 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
-    @action(detail=False, methods=["GET"], url_path="export-csv")
-    def export_waiters_csv(self, request):
-        from io import StringIO
-        """
-        Export all waiters records as a CSV file.
-        Example usage: /api/users/export-csv/
-        """
-        if not request.user.is_staff:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        # Create a StringIO object to hold the CSV data
-        csv_buffer = StringIO()
-
-        queryset = User.objects.filter(waitlisted=True)  # Assuming waiters are staff members
-
-
-        # Create a CSV writer and write the header
-        csv_writer = csv.writer(csv_buffer)
-        csv_writer.writerow(
-            ["ID", "NAME", "MOBILE NUMBER", "EMAIL ADDRESS", "COUNTRY OF RESIDENCE"]
-        )  # Add other fields as needed
-
-        # Write user data to the CSV file
-        for user in queryset:
-            csv_writer.writerow(
-                [user.id, user.name, user.phone, user.email, user.country]
-            )  # Add other field values as needed
-
-        # Get the CSV data from the buffer
-        csv_data = csv_buffer.getvalue().encode("utf-8")
-        response = HttpResponse(csv_data, content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
-        LOGGER.info(response)
-
-        return response
 
 
 
