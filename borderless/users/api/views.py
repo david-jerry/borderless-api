@@ -1001,10 +1001,12 @@ class ResendEmailVerificationViewset(CreateModelMixin, GenericViewSet):
 
         return Response({"detail": _("ok")}, status=status.HTTP_200_OK)
 
+
 class CheckUserViewSet(ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [AllowAny]
+    pagination_class = [CustomPagination]
 
     def get_queryset(self, *args, **kwargs):
         return self.queryset
@@ -1020,12 +1022,14 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
             return Response({"detail": "Email is a required field."}, status=status.HTTP_200_OK)
 
         # Retrieve users from the cache
-        cached_users = cache.get('users', [])
+        cached_users = cache.get("users", [])
 
         # Check if any user with the specified email exists in the cached users
         for user in cached_users:
             if user.email == email and user.is_staff:
-                return Response({"detail": f"A user already exists with this credential: {email}"}, status=status.HTTP_200_OK)
+                return Response(
+                    {"detail": f"A user already exists with this credential: {email}"}, status=status.HTTP_200_OK
+                )
             elif user.email == email and not user.is_staff:
                 return Response({"detail": f"You are not a staff to access login"}, status=status.HTTP_200_OK)
         return Response({"detail": f"Ok."}, status=status.HTTP_200_OK)
@@ -1041,12 +1045,14 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
             return Response({"detail": "Phone Number is a required field."}, status=status.HTTP_200_OK)
 
         # Retrieve users from the cache
-        cached_users = cache.get('users', [])
+        cached_users = cache.get("users", [])
 
         # Check if any user with the specified email exists in the cached users
         for user in cached_users:
             if user.phone == phone and user.is_staff:
-                return Response({"detail": f"A user already exists with this credential: {phone}"}, status=status.HTTP_200_OK)
+                return Response(
+                    {"detail": f"A user already exists with this credential: {phone}"}, status=status.HTTP_200_OK
+                )
             elif user.phone == phone and not user.is_staff:
                 return Response({"detail": f"You are not a staff to access login"}, status=status.HTTP_200_OK)
         return Response({"detail": f"Ok."}, status=status.HTTP_200_OK)
@@ -1078,7 +1084,8 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
             )  # Add other field values as needed
 
         return response
-    
+
+
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -1119,15 +1126,12 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
             user = User.objects.create(waitlisted=True, **serializer.data)
             password = User.objects.make_random_password()
             user.set_password(password)
-            user.save(update_fields=['password'])
+            user.save(update_fields=["password"])
 
             # Assuming you have a related model for responses, adjust as needed
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
-
-
-
 
 
 def email_confirm_redirect(request, key):
