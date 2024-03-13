@@ -26,7 +26,7 @@
 <!-- Your stuff: Third-party CSS libraries go here -->
 <!-- This file stores project-specific CSS -->
 
-  
+
   <link href="{% static 'css/project.css' %}" rel="stylesheet" />
 
 
@@ -48,7 +48,7 @@
 
 <!-- place project specific Javascript in this file -->
 
-  
+
   <script defer src="{% static 'js/project.js' %}"></script>
 
 
@@ -72,9 +72,6 @@
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
               <a class="nav-link" href="{% url 'home' %}">Home <span class="visually-hidden">(current)</span></a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
             </li>
             {% if request.user.is_authenticated %}
               <li class="nav-item">
