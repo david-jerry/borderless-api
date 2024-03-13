@@ -41,7 +41,6 @@ from rest_framework_simplejwt.views import api_settings
 from rest_framework_simplejwt.authentication import AUTH_HEADER_TYPES
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-from borderless.utils.logger import LOGGER
 from borderless.utils.exceptions import ObjectNotFoundException
 from borderless.utils.pagination import CustomPagination
 from borderless.utils.serializers import CustomErrorSerializer
@@ -1054,7 +1053,6 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
 
     @action(detail=False, methods=["GET"], url_path="export-csv")
     def export_waiters_csv(self, request):
-        from io import StringIO
         """
         Export all waiters records as a CSV file.
         Example usage: /api/users/export-csv/
@@ -1062,14 +1060,13 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
         if not request.user.is_staff:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        # Create a StringIO object to hold the CSV data
-        csv_buffer = StringIO()
-
         queryset = User.objects.filter(waitlisted=True)  # Assuming waiters are staff members
 
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
 
         # Create a CSV writer and write the header
-        csv_writer = csv.writer(csv_buffer)
+        csv_writer = csv.writer(response)
         csv_writer.writerow(
             ["ID", "NAME", "MOBILE NUMBER", "EMAIL ADDRESS", "COUNTRY OF RESIDENCE"]
         )  # Add other fields as needed
@@ -1080,14 +1077,7 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
                 [user.id, user.name, user.phone, user.email, user.country]
             )  # Add other field values as needed
 
-        # Get the CSV data from the buffer
-        csv_data = csv_buffer.getvalue().encode("utf-8")
-        response = HttpResponse(csv_data, content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
-        LOGGER.info(response)
-
         return response
-
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -1134,6 +1124,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+
 
 
 
