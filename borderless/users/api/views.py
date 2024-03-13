@@ -1100,6 +1100,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
 
     @action(detail=False, methods=["GET"], url_path="export-csv")
     def export_waiters_csv(self, request):
+        from io import StringIO
         """
         Export all waiters records as a CSV file.
         Example usage: /api/users/export-csv/
@@ -1107,10 +1108,11 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
         if not request.user.is_staff:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+        # Create a StringIO object to hold the CSV data
+        csv_buffer = StringIO()
+
         queryset = User.objects.filter(waitlisted=True)  # Assuming waiters are staff members
 
-        response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
 
         # Create a CSV writer and write the header
         csv_writer = csv.writer(response)
@@ -1123,6 +1125,11 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
             csv_writer.writerow(
                 [user.id, user.name, user.phone, user.email, user.country]
             )  # Add other field values as needed
+
+        # Get the CSV data from the buffer
+        csv_data = csv_buffer.getvalue().encode("utf-8")
+        response = HttpResponse(csv_data, content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="waiters.csv"'
 
         return response
 
