@@ -1090,6 +1090,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = [CustomPagination]
     lookup_field = "pk"
 
     def get_queryset(self, *args, **kwargs):
