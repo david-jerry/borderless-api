@@ -1115,7 +1115,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
 
 
         # Create a CSV writer and write the header
-        csv_writer = csv.writer(response)
+        csv_writer = csv.writer(csv_buffer)
         csv_writer.writerow(
             ["ID", "NAME", "MOBILE NUMBER", "EMAIL ADDRESS", "COUNTRY OF RESIDENCE"]
         )  # Add other fields as needed
