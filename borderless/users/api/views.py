@@ -1006,7 +1006,7 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [AllowAny]
-    pagination_class = [CustomPagination]
+    pagination_class = CustomPagination
 
     def get_queryset(self, *args, **kwargs):
         return self.queryset
@@ -1086,11 +1086,15 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
         return response
 
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
+
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
     lookup_field = "pk"
 
     def get_queryset(self, *args, **kwargs):
@@ -1113,11 +1117,19 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
             query_param = self.request.query_params.get("q", None)
 
             queryset = User.objects.filter(waitlisted=True)
+
             if query_param is not None:
                 queryset = User.objects.filter(waitlisted=True).filter(
                     Q(name__icontains=query_param) | Q(email__icontains=query_param)
                 )
+
+            page = self.paginate_queryset(queryset)
+
             serializer = UserSerializer(queryset, many=True, context={"request": request})
+            if page is not None:
+                serializer = UserSerializer(page, many=True, context={"request": request})
+                result = self.get_paginated_response(serializer.data)
+                return Response(data=result.data, status=status.HTTP_200_OK)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
 
         serializer = UserSerializer(data=request.data, context={"request": request})
