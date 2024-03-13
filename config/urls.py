@@ -10,7 +10,6 @@ from .views import redirect_home_view
 
 urlpatterns = [
     path("", redirect_home_view, name="home"),
-    path("", redirect_home_view, name="about"),
     # User management
     path("users/", include("borderless.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),

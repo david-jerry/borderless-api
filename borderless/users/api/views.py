@@ -1078,6 +1078,7 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
             )  # Add other field values as needed
 
         return response
+    
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
