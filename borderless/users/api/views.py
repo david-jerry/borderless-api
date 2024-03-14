@@ -1141,7 +1141,7 @@ class SubscribersViewSet(RetrieveModelMixin, ListModelMixin, CreateModelMixin, G
             user.set_password(password)
             user.save(update_fields=["password"])
             # Assuming you have a related model for responses, adjust as needed
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
