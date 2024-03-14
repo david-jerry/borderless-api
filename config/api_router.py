@@ -16,6 +16,7 @@ from borderless.users.api.views import (
     TokenRefreshViewset,
     UserViewSet,
     ActivityViewSet,
+    SubscribersViewSet,
     email_confirm_redirect,
     password_reset_confirm_redirect,
 )
@@ -34,6 +35,7 @@ router.register("auth/password/reset", PasswordResetViewset, basename="account_p
 router.register("auth/password/reset/confirm", PasswordResetConfirmViewset, basename="password_reset_confirm")
 router.register("validate", CheckUserViewSet)
 router.register("activities", ActivityViewSet, basename="activity")
+router.register("waiters", SubscribersViewSet, basename="waiter")
 router.register("users", UserViewSet, basename="user")
 
 

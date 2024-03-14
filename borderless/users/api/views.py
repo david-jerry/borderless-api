@@ -1087,17 +1087,64 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
 
         return response
 
+
 class ActivityViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     serializer_class = ActivitiesSerializer
     queryset = Activities.objects.all()
     permission_classes = [IsAuthenticated]
     lookup_field = "pk"
-    
+
     def get_queryset(self, *args, **kwargs):
         assert isinstance(self.request.user.is_staff, bool)
         if self.request.user.is_staff:
             return self.queryset
         return []
+
+
+class SubscribersViewSet(RetrieveModelMixin, ListModelMixin, CreateModelMixin, GenericViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    lookup_field = "pk"
+
+    def list(self, request):
+        if request.user.is_staff:
+            return self.list_waiters(request)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    def list_waiters(self, request):
+        from django.db.models import Q
+        query_param = request.query_params.get("q", None)
+
+        queryset = User.objects.filter(waitlisted=True)
+
+        if query_param is not None:
+            queryset = User.objects.filter(waitlisted=True).filter(
+                Q(name__icontains=query_param) | Q(email__icontains=query_param) | Q(country__icontains=query_param)
+            )
+
+        page = self.paginate_queryset(queryset)
+
+        serializer = UserSerializer(queryset, many=True, context={"request": request})
+        if page is not None:
+            serializer = UserSerializer(page, many=True, context={"request": request})
+            result = self.get_paginated_response(serializer.data)
+            return Response(data=result.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def create(self, request):
+        serializer = UserSerializer(data=request.data, context={"request": request})
+
+        if serializer.is_valid():
+            user = serializer.save(waitlisted=True)
+            password = User.objects.make_random_password()
+            user.set_password(password)
+            user.save(update_fields=["password"])
+            # Assuming you have a related model for responses, adjust as needed
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
 
@@ -1114,46 +1161,6 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
     def me(self, request):
         serializer = UserSerializer(request.user, context={"request": request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-    @action(detail=False, methods=["GET", "POST"])
-    def waiters(self, request):
-        from django.db.models import Q
-
-        if not request.user.is_staff:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        if request.method == "GET":
-            query_param = self.request.query_params.get("q", None)
-
-            queryset = User.objects.filter(waitlisted=True)
-
-            if query_param is not None:
-                queryset = User.objects.filter(waitlisted=True).filter(
-                    Q(name__icontains=query_param) | Q(email__icontains=query_param)
-                )
-
-            page = self.paginate_queryset(queryset)
-
-            serializer = UserSerializer(queryset, many=True, context={"request": request})
-            if page is not None:
-                serializer = UserSerializer(page, many=True, context={"request": request})
-                result = self.get_paginated_response(serializer.data)
-                return Response(data=result.data, status=status.HTTP_200_OK)
-            return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-        serializer = UserSerializer(data=request.data, context={"request": request})
-
-        if serializer.is_valid():
-            # Assuming the user is identified by the 'user_id' in the request data
-            user = User.objects.create(waitlisted=True, **serializer.data)
-            password = User.objects.make_random_password()
-            user.set_password(password)
-            user.save(update_fields=["password"])
-
-            # Assuming you have a related model for responses, adjust as needed
-            return Response(status=status.HTTP_201_CREATED)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 
 def email_confirm_redirect(request, key):
