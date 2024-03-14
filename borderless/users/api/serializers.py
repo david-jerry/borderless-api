@@ -25,7 +25,7 @@ from dj_rest_auth.models import TokenModel
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 
-from borderless.users.models import User as UserType
+from borderless.users.models import Activities, User as UserType
 from borderless.users.api.forms import CustomAuthPasswordResetForm
 from borderless.utils.logger import LOGGER
 from borderless.utils.validators import validate_credit_card
@@ -419,3 +419,9 @@ class UserSerializer(serializers.ModelSerializer[UserType]):
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "pk"},
         }
+
+class ActivitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activities
+        fields = ['id', 'identity', 'activity_type', 'created']
+

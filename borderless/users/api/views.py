@@ -41,12 +41,14 @@ from rest_framework_simplejwt.views import api_settings
 from rest_framework_simplejwt.authentication import AUTH_HEADER_TYPES
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+from borderless.users.models import Activities
 from borderless.utils.exceptions import ObjectNotFoundException
 from borderless.utils.pagination import CustomPagination
 from borderless.utils.serializers import CustomErrorSerializer
 
 
 from .serializers import (
+    ActivitiesSerializer,
     LoginSerializer,
     RegisterSerializer,
     PasswordChangeSerializer,
@@ -1085,6 +1087,17 @@ class CheckUserViewSet(ListModelMixin, GenericViewSet):
 
         return response
 
+class ActivityViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
+    serializer_class = ActivitiesSerializer
+    queryset = Activities.objects.all()
+    permission_classes = [IsAuthenticated]
+    lookup_field = "pk"
+    
+    def get_queryset(self, *args, **kwargs):
+        assert isinstance(self.request.user.is_staff, bool)
+        if self.request.user.is_staff:
+            return self.queryset
+        return []
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
 

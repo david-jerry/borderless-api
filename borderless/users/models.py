@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from borderless.users.managers import UserManager
-
+from model_utils.models import TimeStampedModel
 
 class User(AbstractUser):
     """
@@ -45,3 +45,18 @@ class User(AbstractUser):
 
         """
         return reverse("users:detail", kwargs={"pk": self.id})
+
+class Activities(TimeStampedModel):
+    LOGIN = "LOGIN"
+    SIGNUP = "SINGUP"
+    STATUS = (
+        (LOGIN, LOGIN),
+        (SIGNUP, SIGNUP)
+    )
+    identity = CharField(max_length=255)
+    activity_type = CharField(max_length=8, choices=STATUS, default=SIGNUP)
+
+    class Meta:
+        managed = True
+        verbose_name = "Activity"
+        verbose_name_plural = "Activities"
